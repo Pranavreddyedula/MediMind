@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>Log Your Health Data</h1>
+    <form method="POST" action="/health">
+      <label>Weight (kg):</label>
+      <input type="number" name="weight" required><br>
+
+      <label>Blood Pressure:</label>
+      <input type="text" name="bp" placeholder="120/80" required><br>
+
+      <label>Heart Rate (bpm):</label>
+      <input type="number" name="heart_rate" required><br>
+
+      <label>Notes:</label>
+      <textarea name="notes" placeholder="Optional"></textarea><br>
+
+      <button type="submit">Save & Download PDF</button>
+    </form>
+
+    <h2>Your Previous Entries</h2>
+    <ul>
+      {% for entry in entries %}
+      <li>{{ entry.weight }} kg, {{ entry.bp }}, {{ entry.heart_rate }} bpm, Notes: {{ entry.notes }}</li>
+      {% endfor %}
+    </ul>
+
+    <a href="/logout">Logout</a>
+  </div>
+</body>
+</html>
