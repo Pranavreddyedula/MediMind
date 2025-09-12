@@ -3,15 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MediMind - Home</title>
+  <title>MediMind - Health Tracker</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to MediMind</h1>
-    <p>Your health tracking app is live 🚀</p>
-    <a href="/about">About Us</a>
+    <h1>🧠 MediMind - Health Tracker</h1>
+    <form method="POST" action="/add">
+      <input type="date" name="date" required>
+      <input type="text" name="weight" placeholder="Weight (kg)" required>
+      <input type="text" name="bp" placeholder="Blood Pressure" required>
+      <input type="text" name="sugar" placeholder="Sugar Level" required>
+      <button type="submit">Add Entry</button>
+    </form>
+
+    <h2>Your Health Records</h2>
+    <ul>
+      {% for entry in health_data %}
+        <li>{{ entry.date }} - Weight: {{ entry.weight }} | BP: {{ entry.bp }} | Sugar: {{ entry.sugar }}</li>
+      {% endfor %}
+    </ul>
+
+    <a href="/download">📥 Download PDF Report</a>
   </div>
 </body>
 </html>
