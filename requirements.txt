@@ -1,5 +1,5 @@
-flask
-gunicorn
-fpdf
-flask_sqlalchemy
-flask_login
+flask==3.1.2
+gunicorn==23.0.0
+fpdf==1.7.2
+flask_sqlalchemy==3.0.3
+flask_login==0.6.2
