@@ -4,31 +4,79 @@ body {
     margin: 0;
     padding: 0;
 }
+
 .container {
-    max-width: 600px;
+    max-width: 700px;
     margin: 50px auto;
     background: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
-h1 {
+
+h1, h2 {
     text-align: center;
     color: #333;
 }
+
+p {
+    text-align: center;
+    font-size: 16px;
+}
+
 form input, form textarea, form button {
     width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
     border: 1px solid #ccc;
+    font-size: 14px;
 }
+
+form textarea {
+    resize: vertical;
+    min-height: 60px;
+}
+
 form button {
     background-color: #4CAF50;
     color: white;
     border: none;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
 }
+
 form button:hover {
     background-color: #45a049;
 }
 
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th, table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+table th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
