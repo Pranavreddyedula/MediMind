@@ -10,9 +10,7 @@ app.secret_key = "your_secret_key"
 
 DB_NAME = "health.db"
 
-# -------------------------
-# Template filter for formatting date
-# -------------------------
+# --- Template filter for formatting datetime ---
 @app.template_filter('datetimeformat')
 def datetimeformat(value):
     try:
@@ -20,9 +18,7 @@ def datetimeformat(value):
     except:
         return value
 
-# -------------------------
-# Initialize database
-# -------------------------
+# --- Initialize database ---
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -44,9 +40,7 @@ def init_db():
 
 init_db()
 
-# -------------------------
-# Routes
-# -------------------------
+# --- Routes ---
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -146,7 +140,6 @@ def download_pdf():
     pdf.cell(0, 10, f"{session['username']}'s Health Report", ln=True, align="C")
     pdf.ln(10)
 
-    # Table header
     pdf.set_font("Arial", "B", 12)
     pdf.cell(30, 10, "Weight", 1, 0, "C")
     pdf.cell(30, 10, "BP", 1, 0, "C")
@@ -154,14 +147,18 @@ def download_pdf():
     pdf.cell(50, 10, "Notes", 1, 0, "C")
     pdf.cell(50, 10, "Date", 1, 1, "C")
 
-    # Table rows
     pdf.set_font("Arial", "", 12)
     for entry in entries:
         pdf.cell(30, 10, str(entry[2]), 1, 0, "C")
         pdf.cell(30, 10, entry[3], 1, 0, "C")
         pdf.cell(30, 10, str(entry[4]), 1, 0, "C")
         pdf.cell(50, 10, entry[5], 1, 0, "C")
-        pdf.cell(50, 10, str(entry[6]), 1, 1, "C")  # created_at
+        # Format date
+        try:
+            date_str = datetime.strptime(entry[6], '%Y-%m-%d %H:%M:%S').strftime('%d %b %Y %H:%M')
+        except:
+            date_str = entry[6]
+        pdf.cell(50, 10, date_str, 1, 1, "C")
 
     pdf_output = BytesIO()
     pdf.output(pdf_output)
@@ -169,8 +166,5 @@ def download_pdf():
 
     return send_file(pdf_output, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
 
-# -------------------------
-# Run server
-# -------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
