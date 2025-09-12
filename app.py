@@ -7,18 +7,9 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
-
 DB_NAME = "health.db"
 
-# --- Template filter for formatting datetime ---
-@app.template_filter('datetimeformat')
-def datetimeformat(value):
-    try:
-        return datetime.strptime(value, '%Y-%m-%d %H:%M:%S').strftime('%d %b %Y %H:%M')
-    except:
-        return value
-
-# --- Initialize database ---
+# Initialize database
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -40,7 +31,14 @@ def init_db():
 
 init_db()
 
-# --- Routes ---
+# Format timestamp in templates
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    try:
+        return datetime.strptime(value, '%Y-%m-%d %H:%M:%S').strftime('%d %b %Y %H:%M')
+    except:
+        return value
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -59,7 +57,7 @@ def register():
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         try:
-            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", 
+            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
                       (username, email, password))
             conn.commit()
         except sqlite3.IntegrityError:
@@ -153,12 +151,7 @@ def download_pdf():
         pdf.cell(30, 10, entry[3], 1, 0, "C")
         pdf.cell(30, 10, str(entry[4]), 1, 0, "C")
         pdf.cell(50, 10, entry[5], 1, 0, "C")
-        # Format date
-        try:
-            date_str = datetime.strptime(entry[6], '%Y-%m-%d %H:%M:%S').strftime('%d %b %Y %H:%M')
-        except:
-            date_str = entry[6]
-        pdf.cell(50, 10, date_str, 1, 1, "C")
+        pdf.cell(50, 10, str(entry[6]), 1, 1, "C")
 
     pdf_output = BytesIO()
     pdf.output(pdf_output)
