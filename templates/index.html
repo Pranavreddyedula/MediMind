@@ -5,43 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MediMind - Home</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
   <div class="container">
     <h1>Welcome to MediMind</h1>
-    <p>Your health tracking app is live 🚀</p>
-
-    <h2>Add Health Record</h2>
-    <form method="POST" action="/add">
-      <label>Date:</label>
-      <input type="date" name="date" required><br>
-
-      <label>Weight (kg):</label>
-      <input type="number" step="0.1" name="weight" required><br>
-
-      <label>Blood Pressure:</label>
-      <input type="text" name="bp" placeholder="120/80" required><br>
-
-      <label>Sugar Level:</label>
-      <input type="number" step="0.1" name="sugar" required><br>
-
-      <button type="submit">Add Record</button>
-    </form>
-
-    <h2>Health Logs</h2>
-    {% if logs %}
-      <ul>
-        {% for log in logs %}
-          <li>{{ log.date }} - Weight: {{ log.weight }} kg, BP: {{ log.bp }}, Sugar: {{ log.sugar }}</li>
-        {% endfor %}
-      </ul>
+    <p>Your personal health tracking app 🚀</p>
+    {% if 'username' in session %}
+      <p>Hello, {{ session['username'] }}!</p>
+      <a href="{{ url_for('health') }}">Go to Health Tracker</a> | 
+      <a href="{{ url_for('logout') }}">Logout</a>
     {% else %}
-      <p>No records yet. Add your first entry above.</p>
+      <a href="{{ url_for('login') }}">Login</a> | 
+      <a href="{{ url_for('register') }}">Register</a>
     {% endif %}
-
-    <a href="/download">📄 Download Health Report (PDF)</a> |
-    <a href="/about">About Us</a>
+    <br><br>
+    <a href="{{ url_for('about') }}">About Us</a>
   </div>
 </body>
 </html>
