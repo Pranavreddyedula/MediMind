@@ -22,26 +22,22 @@
 
     <h2>Your Health Entries</h2>
     <table border="1" cellpadding="5">
-      <thead>
-        <tr>
-          <th>Weight</th>
-          <th>BP</th>
-          <th>Heart Rate</th>
-          <th>Notes</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for entry in entries %}
-        <tr>
-          <td>{{ entry[2] }}</td>
-          <td>{{ entry[3] }}</td>
-          <td>{{ entry[4] }}</td>
-          <td>{{ entry[5] or '-' }}</td>
-          <td>{{ entry[6]|datetimeformat }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
+      <tr>
+        <th>Weight</th>
+        <th>BP</th>
+        <th>Heart Rate</th>
+        <th>Notes</th>
+        <th>Date</th>
+      </tr>
+      {% for entry in entries %}
+      <tr>
+        <td>{{ entry[2] }}</td>
+        <td>{{ entry[3] }}</td>
+        <td>{{ entry[4] }}</td>
+        <td>{{ entry[5] }}</td>
+        <td>{{ entry[6]|datetimeformat }}</td>
+      </tr>
+      {% endfor %}
     </table>
 
     <br>
