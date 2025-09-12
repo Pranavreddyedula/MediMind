@@ -25,3 +25,65 @@ MediMind/
 └── static/
 ├── style.css
 └── favicon.ico
+
+---
+
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/pranavreddyedula/MediMind.git
+cd MediMind
+2.Install dependencies:
+
+pip install -r requirements.txt
+3.Run the app locally:
+
+python app.py
+
+4.Open your browser and go to:
+
+http://127.0.0.1:5000/
+Deployment on Render
+
+1.Connect your GitHub repo to Render.
+
+2.Set Build Command:
+
+pip install -r requirements.txt
+
+
+3.Set Start Command:
+
+gunicorn app:app
+
+
+4.Optional: Add environment variable FLASK_ENV=production.
+
+5.Deploy. Your app will be live at the Render URL.
+
+Contributing
+
+Feel free to fork, make changes, and submit a pull request.
+
+License
+
+This project is free to use for educational purposes.
+
+GitHub Username: pranavreddyedula
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
