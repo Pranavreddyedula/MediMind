@@ -1,4 +1,5 @@
 flask
 gunicorn
 fpdf
-reportlab
+flask_sqlalchemy
+flask_login
