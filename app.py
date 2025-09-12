@@ -9,6 +9,17 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 DB_NAME = "health.db"
 
+# Template filter to format datetime
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    if not value:
+        return ""
+    try:
+        dt = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+        return dt.strftime('%d %b %Y %H:%M')
+    except Exception:
+        return str(value)
+
 # Initialize database
 def init_db():
     conn = sqlite3.connect(DB_NAME)
@@ -31,14 +42,6 @@ def init_db():
 
 init_db()
 
-# Format timestamp in templates
-@app.template_filter('datetimeformat')
-def datetimeformat(value):
-    try:
-        return datetime.strptime(value, '%Y-%m-%d %H:%M:%S').strftime('%d %b %Y %H:%M')
-    except:
-        return value
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -53,11 +56,10 @@ def register():
         username = request.form["username"]
         email = request.form["email"]
         password = request.form["password"]
-
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         try:
-            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
+            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", 
                       (username, email, password))
             conn.commit()
         except sqlite3.IntegrityError:
@@ -72,13 +74,11 @@ def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
         user = c.fetchone()
         conn.close()
-
         if user:
             session["user_id"] = user[0]
             session["username"] = user[1]
@@ -104,7 +104,6 @@ def health():
         bp = request.form["bp"]
         heart_rate = request.form["heart_rate"]
         notes = request.form.get("notes", "")
-
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         c.execute("INSERT INTO health_entries (user_id, weight, bp, heart_rate, notes) VALUES (?, ?, ?, ?, ?)",
