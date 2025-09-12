@@ -3,36 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Health Tracker</title>
+  <title>Health Tracker - MediMind</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <div class="container">
-    <h1>Log Your Health Data</h1>
-    <form method="POST" action="/health">
-      <label>Weight (kg):</label>
-      <input type="number" name="weight" required><br>
+    <h1>Health Tracker</h1>
+    <p>Welcome, {{ session['username'] }}! <a href="{{ url_for('logout') }}">Logout</a></p>
 
-      <label>Blood Pressure:</label>
-      <input type="text" name="bp" placeholder="120/80" required><br>
-
-      <label>Heart Rate (bpm):</label>
-      <input type="number" name="heart_rate" required><br>
-
-      <label>Notes:</label>
-      <textarea name="notes" placeholder="Optional"></textarea><br>
-
-      <button type="submit">Save & Download PDF</button>
+    <h2>Add Health Entry</h2>
+    <form method="POST" action="{{ url_for('health') }}">
+      <input type="number" step="0.1" name="weight" placeholder="Weight (kg)" required><br>
+      <input type="text" name="bp" placeholder="Blood Pressure (e.g., 120/80)" required><br>
+      <input type="number" name="heart_rate" placeholder="Heart Rate" required><br>
+      <textarea name="notes" placeholder="Notes"></textarea><br>
+      <button type="submit">Add Entry</button>
     </form>
 
-    <h2>Your Previous Entries</h2>
-    <ul>
+    <h2>Your Health Entries</h2>
+    <table border="1" cellpadding="5">
+      <tr>
+        <th>Weight</th>
+        <th>BP</th>
+        <th>Heart Rate</th>
+        <th>Notes</th>
+      </tr>
       {% for entry in entries %}
-      <li>{{ entry.weight }} kg, {{ entry.bp }}, {{ entry.heart_rate }} bpm, Notes: {{ entry.notes }}</li>
+      <tr>
+        <td>{{ entry[2] }}</td>
+        <td>{{ entry[3] }}</td>
+        <td>{{ entry[4] }}</td>
+        <td>{{ entry[5] }}</td>
+      </tr>
       {% endfor %}
-    </ul>
+    </table>
 
-    <a href="/logout">Logout</a>
+    <br>
+    <a href="{{ url_for('download_pdf') }}">Download PDF Report</a>
   </div>
 </body>
 </html>
