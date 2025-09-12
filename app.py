@@ -7,7 +7,8 @@ import os
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-DB_NAME = "health.db"
+# Absolute path for database to work on Render
+DB_NAME = os.path.join(os.path.dirname(__file__), "health.db")
 
 # Initialize database
 def init_db():
@@ -135,15 +136,16 @@ def download_pdf():
     pdf.cell(30, 10, "BP", 1, 0, "C")
     pdf.cell(30, 10, "Heart Rate", 1, 0, "C")
     pdf.cell(50, 10, "Notes", 1, 0, "C")
-    pdf.cell(50, 10, "Date", 1, 1, "C")  # New column for date
+    pdf.cell(50, 10, "Date", 1, 1, "C")
 
     pdf.set_font("Arial", "", 12)
     for entry in entries:
+        notes = entry[5] if entry[5] else ""
         pdf.cell(30, 10, str(entry[2]), 1, 0, "C")
         pdf.cell(30, 10, entry[3], 1, 0, "C")
         pdf.cell(30, 10, str(entry[4]), 1, 0, "C")
-        pdf.cell(50, 10, entry[5], 1, 0, "C")
-        pdf.cell(50, 10, str(entry[6]), 1, 1, "C")  # Print created_at
+        pdf.cell(50, 10, notes, 1, 0, "C")
+        pdf.cell(50, 10, str(entry[6]), 1, 1, "C")
 
     pdf_output = BytesIO()
     pdf.output(pdf_output)
