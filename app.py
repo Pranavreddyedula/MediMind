@@ -24,7 +24,8 @@ def init_db():
                     weight REAL,
                     bp TEXT,
                     heart_rate INTEGER,
-                    notes TEXT)''')
+                    notes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     conn.commit()
     conn.close()
 
@@ -105,7 +106,7 @@ def health():
 
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT * FROM health_entries WHERE user_id=?", (user_id,))
+    c.execute("SELECT * FROM health_entries WHERE user_id=? ORDER BY created_at DESC", (user_id,))
     entries = c.fetchall()
     conn.close()
 
@@ -119,7 +120,7 @@ def download_pdf():
     user_id = session["user_id"]
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT * FROM health_entries WHERE user_id=?", (user_id,))
+    c.execute("SELECT * FROM health_entries WHERE user_id=? ORDER BY created_at DESC", (user_id,))
     entries = c.fetchall()
     conn.close()
 
@@ -130,22 +131,25 @@ def download_pdf():
     pdf.ln(10)
 
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(40, 10, "Weight")
-    pdf.cell(40, 10, "BP")
-    pdf.cell(40, 10, "Heart Rate")
-    pdf.cell(70, 10, "Notes", ln=True)
+    pdf.cell(30, 10, "Weight", 1, 0, "C")
+    pdf.cell(30, 10, "BP", 1, 0, "C")
+    pdf.cell(30, 10, "Heart Rate", 1, 0, "C")
+    pdf.cell(50, 10, "Notes", 1, 0, "C")
+    pdf.cell(50, 10, "Date", 1, 1, "C")  # New column for date
 
     pdf.set_font("Arial", "", 12)
     for entry in entries:
-        pdf.cell(40, 10, str(entry[2]))
-        pdf.cell(40, 10, entry[3])
-        pdf.cell(40, 10, str(entry[4]))
-        pdf.cell(70, 10, entry[5], ln=True)
+        pdf.cell(30, 10, str(entry[2]), 1, 0, "C")
+        pdf.cell(30, 10, entry[3], 1, 0, "C")
+        pdf.cell(30, 10, str(entry[4]), 1, 0, "C")
+        pdf.cell(50, 10, entry[5], 1, 0, "C")
+        pdf.cell(50, 10, str(entry[6]), 1, 1, "C")  # Print created_at
 
-    pdf_bytes = BytesIO(pdf.output(dest='S').encode('latin1'))
-    pdf_bytes.seek(0)
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
 
-    return send_file(pdf_bytes, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
+    return send_file(pdf_output, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
