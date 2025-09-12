@@ -48,7 +48,7 @@ def register():
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         try:
-            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", 
+            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
                       (username, email, password))
             conn.commit()
         except sqlite3.IntegrityError:
@@ -91,15 +91,21 @@ def health():
     user_id = session["user_id"]
 
     if request.method == "POST":
-        weight = request.form["weight"]
-        bp = request.form["bp"]
-        heart_rate = request.form["heart_rate"]
-        notes = request.form.get("notes", "")
+        weight = request.form.get("weight")
+        bp = request.form.get("bp")
+        heart_rate = request.form.get("heart_rate")
+        notes = request.form.get("notes", "")  # Safe default for empty notes
+
+        # Basic validation
+        if not weight or not bp or not heart_rate:
+            return "Please fill all required fields!"
 
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
-        c.execute("INSERT INTO health_entries (user_id, weight, bp, heart_rate, notes) VALUES (?, ?, ?, ?, ?)",
-                  (user_id, weight, bp, heart_rate, notes))
+        c.execute(
+            "INSERT INTO health_entries (user_id, weight, bp, heart_rate, notes) VALUES (?, ?, ?, ?, ?)",
+            (user_id, weight, bp, heart_rate, notes)
+        )
         conn.commit()
         conn.close()
 
@@ -137,10 +143,11 @@ def download_pdf():
 
     pdf.set_font("Arial", "", 12)
     for entry in entries:
+        note_text = entry[5] if entry[5] else "-"  # Safe for empty notes
         pdf.cell(40, 10, str(entry[2]))
         pdf.cell(40, 10, entry[3])
         pdf.cell(40, 10, str(entry[4]))
-        pdf.cell(70, 10, entry[5], ln=True)
+        pdf.cell(70, 10, note_text, ln=True)
 
     pdf_output = BytesIO()
     pdf.output(pdf_output)
@@ -150,3 +157,4 @@ def download_pdf():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
