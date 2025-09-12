@@ -1,89 +1,71 @@
-# MediMind
-A health tracking web app designed for students and individuals to monitor their daily health activities, symptoms, and mental well-being. Users can add, edit, and delete entries, manage their personal profiles, and track health progress over time. Built with simplicity and usability in mind, this project is free to use 
-MediMind is a **personal health tracking web app** built with **Flask**. It allows users to track their health, monitor progress, and stay informed about their wellness.
+# MediMind - Health Tracking Web App
 
----
+MediMind is a simple and intuitive health tracking web application that allows users to log their health metrics such as weight, blood pressure, heart rate, and notes. Users can also download their health data as a PDF report.
 
 ## Features
 
-- **Home Page**: Welcome message and overview.
-- **About Page**: Information about the MediMind app.
-- **Responsive Design**: Works on desktop and mobile.
-- **Favicon and CSS Styling**: Clean and polished look.
-- **Production-ready**: Deployable on Render using Gunicorn.
-
----
+- User Registration and Login
+- Health Entry Form (Weight, Blood Pressure, Heart Rate, Notes)
+- Persistent Data Storage using SQLite
+- PDF Report Generation
+- Secure User Sessions
 
 ## Folder Structure
 
 MediMind/
 ├── app.py
+├── health.db
 ├── requirements.txt
-├── templates/
-│ ├── index.html
-│ └── about.html
-└── static/
-├── style.css
-└── favicon.ico
+├── static/
+│ └── style.css
+└── templates/
+├── index.html
+├── about.html
+├── login.html
+├── register.html
+└── health.html
 
----
 
 ## Installation
 
 1. Clone the repository:
 
-```bash
 git clone https://github.com/pranavreddyedula/MediMind.git
 cd MediMind
-2.Install dependencies:
 
+2.Create a virtual environment and activate it:
+
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+3.Install dependencies:
 pip install -r requirements.txt
-3.Run the app locally:
 
+4.Run the app locally:
 python app.py
+Open your browser and visit http://127.0.0.1:5000.
 
-4.Open your browser and go to:
-
-http://127.0.0.1:5000/
 Deployment on Render
+1.Push your code to GitHub.
 
-1.Connect your GitHub repo to Render.
+2.Create a new Web Service on Render.
 
-2.Set Build Command:
+3.Connect your GitHub repository.
 
-pip install -r requirements.txt
+4.Set Build Command: pip install -r requirements.txt
 
+5.Set Start Command: gunicorn app:app
 
-3.Set Start Command:
+6.Deploy your app.
+Your app will be available at the Render URL provided (e.g., https://medimind-1-hgh0.onrender.com).
 
-gunicorn app:app
+Technologies Used
+1.Python 3
 
+2.Flask
 
-4.Optional: Add environment variable FLASK_ENV=production.
+3.SQLite
 
-5.Deploy. Your app will be live at the Render URL.
+4.FPDF (PDF Report Generation)
 
-Contributing
-
-Feel free to fork, make changes, and submit a pull request.
-
-License
-
-This project is free to use for educational purposes.
-
-GitHub Username: pranavreddyedula
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+5.HTML, CSS
