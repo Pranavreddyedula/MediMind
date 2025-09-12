@@ -3,14 +3,26 @@ import sqlite3
 from fpdf import FPDF
 from io import BytesIO
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-# Absolute path for database to work on Render
-DB_NAME = os.path.join(os.path.dirname(__file__), "health.db")
+DB_NAME = "health.db"
 
+# -------------------------
+# Template filter for formatting date
+# -------------------------
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    try:
+        return datetime.strptime(value, '%Y-%m-%d %H:%M:%S').strftime('%d %b %Y %H:%M')
+    except:
+        return value
+
+# -------------------------
 # Initialize database
+# -------------------------
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -32,6 +44,9 @@ def init_db():
 
 init_db()
 
+# -------------------------
+# Routes
+# -------------------------
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -131,6 +146,7 @@ def download_pdf():
     pdf.cell(0, 10, f"{session['username']}'s Health Report", ln=True, align="C")
     pdf.ln(10)
 
+    # Table header
     pdf.set_font("Arial", "B", 12)
     pdf.cell(30, 10, "Weight", 1, 0, "C")
     pdf.cell(30, 10, "BP", 1, 0, "C")
@@ -138,14 +154,14 @@ def download_pdf():
     pdf.cell(50, 10, "Notes", 1, 0, "C")
     pdf.cell(50, 10, "Date", 1, 1, "C")
 
+    # Table rows
     pdf.set_font("Arial", "", 12)
     for entry in entries:
-        notes = entry[5] if entry[5] else ""
         pdf.cell(30, 10, str(entry[2]), 1, 0, "C")
         pdf.cell(30, 10, entry[3], 1, 0, "C")
         pdf.cell(30, 10, str(entry[4]), 1, 0, "C")
-        pdf.cell(50, 10, notes, 1, 0, "C")
-        pdf.cell(50, 10, str(entry[6]), 1, 1, "C")
+        pdf.cell(50, 10, entry[5], 1, 0, "C")
+        pdf.cell(50, 10, str(entry[6]), 1, 1, "C")  # created_at
 
     pdf_output = BytesIO()
     pdf.output(pdf_output)
@@ -153,5 +169,8 @@ def download_pdf():
 
     return send_file(pdf_output, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
 
+# -------------------------
+# Run server
+# -------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
