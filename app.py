@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, send_file
 import sqlite3
 from fpdf import FPDF
+from io import BytesIO
 import os
 
 app = Flask(__name__)
@@ -141,10 +142,11 @@ def download_pdf():
         pdf.cell(40, 10, str(entry[4]))
         pdf.cell(70, 10, entry[5], ln=True)
 
-    pdf_path = f"{session['username']}_health_report.pdf"
-    pdf.output(pdf_path)
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
 
-    return send_file(pdf_path, as_attachment=True)
+    return send_file(pdf_output, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
