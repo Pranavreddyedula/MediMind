@@ -3,28 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About - MediMind</title>
+  <title>About MediMind</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body>
   <div class="container">
     <h1>About MediMind</h1>
+    <p>MediMind is a simple health tracking app designed to help you stay on top of your health.</p>
+
+    <h2>Features</h2>
+    <ul>
+      <li>📅 Log daily health records (weight, blood pressure, sugar levels)</li>
+      <li>📊 View your history in one place</li>
+      <li>📄 Download your health report as PDF</li>
+      <li>🚀 Easy to use and accessible anywhere</li>
+    </ul>
+
+    <h2>Our Goal</h2>
     <p>
-      MediMind is a simple health tracking app built to help you 
-      monitor your daily health records such as <b>weight</b>, 
-      <b>blood pressure</b>, and <b>sugar levels</b>.
-    </p>
-    <p>
-      You can log your health data, review your progress, 
-      and even <b>download a PDF health report</b> 📄 for easy sharing with doctors or family.
-    </p>
-    <p>
-      🚀 Our goal is to make health tracking <b>simple, accessible, and effective</b>.
+      Our mission is to provide a lightweight and user-friendly tool 
+      that makes health tracking simple for everyone.
     </p>
 
-    <br>
-    <a href="{{ url_for('home') }}">🏠 Back to Home</a>
+    <p><a href="{{ url_for('home') }}">⬅ Back to Home</a></p>
   </div>
 </body>
 </html>
