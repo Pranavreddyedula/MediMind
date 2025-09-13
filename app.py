@@ -5,20 +5,9 @@ from io import BytesIO
 import os
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(_name_)
 app.secret_key = "your_secret_key"
 DB_NAME = "health.db"
-
-# Template filter to format datetime
-@app.template_filter('datetimeformat')
-def datetimeformat(value):
-    if not value:
-        return ""
-    try:
-        dt = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
-        return dt.strftime('%d %b %Y %H:%M')
-    except Exception:
-        return str(value)
 
 # Initialize database
 def init_db():
@@ -41,6 +30,14 @@ def init_db():
     conn.close()
 
 init_db()
+
+# Template filter for formatting datetime
+@app.template_filter('datetimeformat')
+def datetimeformat(value):
+    try:
+        return datetime.strptime(value, '%Y-%m-%d %H:%M:%S').strftime('%d %b %Y %H:%M')
+    except:
+        return value
 
 @app.route("/")
 def index():
@@ -127,7 +124,7 @@ def download_pdf():
     user_id = session["user_id"]
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT * FROM health_entries WHERE user_id=? ORDER BY created_at DESC", (user_id,))
+    c.execute("SELECT * FROM health_entries WHERE user_id=? ORDER BY created_at ASC", (user_id,))
     entries = c.fetchall()
     conn.close()
 
@@ -137,6 +134,7 @@ def download_pdf():
     pdf.cell(0, 10, f"{session['username']}'s Health Report", ln=True, align="C")
     pdf.ln(10)
 
+    # Table header
     pdf.set_font("Arial", "B", 12)
     pdf.cell(30, 10, "Weight", 1, 0, "C")
     pdf.cell(30, 10, "BP", 1, 0, "C")
@@ -144,6 +142,7 @@ def download_pdf():
     pdf.cell(50, 10, "Notes", 1, 0, "C")
     pdf.cell(50, 10, "Date", 1, 1, "C")
 
+    # Table rows
     pdf.set_font("Arial", "", 12)
     for entry in entries:
         pdf.cell(30, 10, str(entry[2]), 1, 0, "C")
@@ -152,11 +151,41 @@ def download_pdf():
         pdf.cell(50, 10, entry[5], 1, 0, "C")
         pdf.cell(50, 10, str(entry[6]), 1, 1, "C")
 
+    # --- Weight Trend Graph ---
+    weights = [entry[2] for entry in entries]
+    if weights:
+        max_weight = max(weights) + 5
+        pdf.ln(10)
+        pdf.set_font("Arial", "B", 14)
+        pdf.cell(0, 10, "Weight Trend", ln=True)
+        start_x = 20
+        start_y = pdf.get_y() + 10
+        bar_width = 10
+        spacing = 5
+        for i, w in enumerate(weights):
+            bar_height = (w / max_weight) * 50
+            pdf.rect(start_x + i*(bar_width+spacing), start_y + 50 - bar_height, bar_width, bar_height, 'F')
+        pdf.ln(60)
+
+    # --- Heart Rate Trend Graph ---
+    heart_rates = [entry[4] for entry in entries]
+    if heart_rates:
+        max_hr = max(heart_rates) + 10
+        pdf.set_font("Arial", "B", 14)
+        pdf.cell(0, 10, "Heart Rate Trend", ln=True)
+        start_x = 20
+        start_y = pdf.get_y() + 10
+        bar_width = 10
+        spacing = 5
+        for i, hr in enumerate(heart_rates):
+            bar_height = (hr / max_hr) * 50
+            pdf.rect(start_x + i*(bar_width+spacing), start_y + 50 - bar_height, bar_width, bar_height, 'F')
+        pdf.ln(60)
+
     pdf_output = BytesIO()
     pdf.output(pdf_output)
     pdf_output.seek(0)
-
     return send_file(pdf_output, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
