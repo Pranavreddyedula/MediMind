@@ -182,10 +182,12 @@ def download_pdf():
             pdf.rect(start_x + i*(bar_width+spacing), start_y + 50 - bar_height, bar_width, bar_height, 'F')
         pdf.ln(60)
 
-    pdf_output = BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)
+    # ✅ Fix: Correct BytesIO usage
+    pdf_bytes = pdf.output(dest="S").encode("latin1")
+    pdf_output = BytesIO(pdf_bytes)
+
     return send_file(pdf_output, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
 
-if _name_ == "_main_":
+# ✅ Fix: Correct __name__ check
+if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
