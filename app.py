@@ -5,7 +5,7 @@ from io import BytesIO
 import os
 from datetime import datetime
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.secret_key = "your_secret_key"
 DB_NAME = "health.db"
 
