@@ -8,13 +8,21 @@
 </head>
 <body>
   <div class="container">
-    <h1>Login</h1>
+    <h1>🔑 Login</h1>
     <form method="POST" action="{{ url_for('login') }}">
       <input type="text" name="username" placeholder="Username" required><br>
       <input type="password" name="password" placeholder="Password" required><br>
       <button type="submit">Login</button>
     </form>
-    <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+
+    <p>
+      Don’t have an account? 
+      <a href="{{ url_for('register') }}">Register here</a>
+    </p>
+
+    <p>
+      <a href="{{ url_for('index') }}">⬅ Back to Home</a>
+    </p>
   </div>
 </body>
 </html>
