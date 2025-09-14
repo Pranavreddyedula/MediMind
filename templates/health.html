@@ -9,7 +9,10 @@
 <body>
   <div class="container">
     <h1>Health Tracker</h1>
-    <p>Welcome, {{ session['username'] }}! <a href="{{ url_for('logout') }}">Logout</a></p>
+    <p>
+      Welcome, {{ session['username'] }}! 
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </p>
 
     <h2>Add Health Entry</h2>
     <form method="POST" action="{{ url_for('health') }}">
@@ -21,6 +24,7 @@
     </form>
 
     <h2>Your Health Entries</h2>
+    {% if entries %}
     <table border="1" cellpadding="5">
       <tr>
         <th>Weight</th>
@@ -35,13 +39,16 @@
         <td>{{ entry[3] }}</td>
         <td>{{ entry[4] }}</td>
         <td>{{ entry[5] }}</td>
-        <td>{{ entry[6]|datetimeformat }}</td>
+        <td>{{ entry[6] | datetimeformat }}</td>
       </tr>
       {% endfor %}
     </table>
+    {% else %}
+      <p>No entries yet. Start adding your health data above!</p>
+    {% endif %}
 
     <br>
-    <a href="{{ url_for('download_pdf') }}">Download PDF Report</a>
+    <a href="{{ url_for('download_pdf') }}">📄 Download PDF Report</a>
   </div>
 </body>
 </html>
