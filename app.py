@@ -5,11 +5,12 @@ from io import BytesIO
 import os
 from datetime import datetime
 
+# Flask app setup
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
+app.secret_key = os.environ.get("SECRET_KEY", "fallback_secret_key")  # Use env var or fallback
 DB_NAME = "health.db"
 
-# Initialize database
+# Initialize database if not exists
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -29,6 +30,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+# Call init_db at startup
 init_db()
 
 # Template filter for formatting datetime
@@ -56,7 +58,7 @@ def register():
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         try:
-            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", 
+            c.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)",
                       (username, email, password))
             conn.commit()
         except sqlite3.IntegrityError:
@@ -97,10 +99,14 @@ def health():
     user_id = session["user_id"]
 
     if request.method == "POST":
-        weight = request.form["weight"]
-        bp = request.form["bp"]
-        heart_rate = request.form["heart_rate"]
-        notes = request.form.get("notes", "")
+        try:
+            weight = float(request.form["weight"])
+            bp = request.form["bp"]
+            heart_rate = int(request.form["heart_rate"])
+            notes = request.form.get("notes", "")
+        except ValueError:
+            return "Invalid input! Please check your entries."
+
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         c.execute("INSERT INTO health_entries (user_id, weight, bp, heart_rate, notes) VALUES (?, ?, ?, ?, ?)",
@@ -146,13 +152,13 @@ def download_pdf():
     pdf.set_font("Arial", "", 12)
     for entry in entries:
         pdf.cell(30, 10, str(entry[2]), 1, 0, "C")
-        pdf.cell(30, 10, entry[3], 1, 0, "C")
-        pdf.cell(30, 10, str(entry[4]), 1, 0, "C")
-        pdf.cell(50, 10, entry[5], 1, 0, "C")
-        pdf.cell(50, 10, str(entry[6]), 1, 1, "C")
+        pdf.cell(30, 10, entry[3] if entry[3] else "-", 1, 0, "C")
+        pdf.cell(30, 10, str(entry[4]) if entry[4] else "-", 1, 0, "C")
+        pdf.cell(50, 10, entry[5] if entry[5] else "-", 1, 0, "C")
+        pdf.cell(50, 10, str(entry[6]) if entry[6] else "-", 1, 1, "C")
 
-    # --- Weight Trend Graph ---
-    weights = [entry[2] for entry in entries]
+    # Weight Trend Graph
+    weights = [entry[2] for entry in entries if entry[2] is not None]
     if weights:
         max_weight = max(weights) + 5
         pdf.ln(10)
@@ -167,8 +173,8 @@ def download_pdf():
             pdf.rect(start_x + i*(bar_width+spacing), start_y + 50 - bar_height, bar_width, bar_height, 'F')
         pdf.ln(60)
 
-    # --- Heart Rate Trend Graph ---
-    heart_rates = [entry[4] for entry in entries]
+    # Heart Rate Trend Graph
+    heart_rates = [entry[4] for entry in entries if entry[4] is not None]
     if heart_rates:
         max_hr = max(heart_rates) + 10
         pdf.set_font("Arial", "B", 14)
@@ -182,12 +188,11 @@ def download_pdf():
             pdf.rect(start_x + i*(bar_width+spacing), start_y + 50 - bar_height, bar_width, bar_height, 'F')
         pdf.ln(60)
 
-    # ✅ Fix: Correct BytesIO usage
-    pdf_bytes = pdf.output(dest="S").encode("latin1")
-    pdf_output = BytesIO(pdf_bytes)
-
+    pdf_output = BytesIO()
+    pdf.output(pdf_output)
+    pdf_output.seek(0)
     return send_file(pdf_output, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
 
-# ✅ Fix: Correct __name__ check
+# Render-ready app runner
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
