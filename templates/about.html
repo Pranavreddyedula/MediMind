@@ -8,9 +8,19 @@
 </head>
 <body>
   <div class="container">
-    <h1>About MediMind</h1>
-    <p>MediMind helps you track your health metrics, generate PDF reports, and keep your health data organized and secure.</p>
-    <a href="{{ url_for('index') }}">Back to Home</a>
+    <header>
+      <h1>About MediMind</h1>
+    </header>
+
+    <main>
+      <p>
+        MediMind helps you track your health metrics, generate PDF reports, and keep your health data organized and secure.
+      </p>
+    </main>
+
+    <footer>
+      <a class="btn" href="{{ url_for('index') }}">← Back to Home</a>
+    </footer>
   </div>
 </body>
 </html>
