@@ -7,7 +7,7 @@ from datetime import datetime
 
 # Flask app setup
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "fallback_secret_key")  # Use env var or fallback
+app.secret_key = os.environ.get("SECRET_KEY", "fallback_secret_key")
 DB_NAME = "health.db"
 
 # Initialize database if not exists
@@ -30,7 +30,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# Call init_db at startup
 init_db()
 
 # Template filter for formatting datetime
@@ -129,7 +128,6 @@ def download_pdf():
 
     user_id = session["user_id"]
 
-    # Fetch health entries
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("SELECT * FROM health_entries WHERE user_id=? ORDER BY created_at ASC", (user_id,))
@@ -144,13 +142,12 @@ def download_pdf():
 
     # Table header
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(30, 10, "Weight", 1, 0, "C")
-    pdf.cell(30, 10, "BP", 1, 0, "C")
-    pdf.cell(30, 10, "Heart Rate", 1, 0, "C")
-    pdf.cell(50, 10, "Notes", 1, 0, "C")
-    pdf.cell(50, 10, "Date", 1, 1, "C")
+    headers = ["Weight", "BP", "Heart Rate", "Notes", "Date"]
+    for h in headers:
+        pdf.cell(38, 10, h, 1, 0, "C")
+    pdf.ln(10)
 
-    # Table rows safely
+    # Table rows
     pdf.set_font("Arial", "", 12)
     if entries:
         for entry in entries:
@@ -159,15 +156,15 @@ def download_pdf():
             heart_rate = str(entry[4]) if entry[4] is not None else "-"
             notes = entry[5] if entry[5] else "-"
             created_at = entry[6] if entry[6] else "-"
-            pdf.cell(30, 10, weight, 1, 0, "C")
-            pdf.cell(30, 10, bp, 1, 0, "C")
-            pdf.cell(30, 10, heart_rate, 1, 0, "C")
-            pdf.cell(50, 10, notes, 1, 0, "C")
-            pdf.cell(50, 10, created_at, 1, 1, "C")
+            pdf.cell(38, 10, weight, 1, 0, "C")
+            pdf.cell(38, 10, bp, 1, 0, "C")
+            pdf.cell(38, 10, heart_rate, 1, 0, "C")
+            pdf.cell(38, 10, notes, 1, 0, "C")
+            pdf.cell(38, 10, created_at, 1, 1, "C")
     else:
         pdf.cell(190, 10, "No health entries available.", 1, 1, "C")
 
-    # Draw Weight Trend Graph if available
+    # Weight Trend Graph
     weights = [entry[2] for entry in entries if entry[2] is not None]
     if weights:
         max_weight = max(weights) + 5
@@ -183,7 +180,7 @@ def download_pdf():
             pdf.rect(start_x + i*(bar_width+spacing), start_y + 50 - bar_height, bar_width, bar_height, 'F')
         pdf.ln(60)
 
-    # Draw Heart Rate Trend Graph if available
+    # Heart Rate Trend Graph
     heart_rates = [entry[4] for entry in entries if entry[4] is not None]
     if heart_rates:
         max_hr = max(heart_rates) + 10
@@ -200,8 +197,9 @@ def download_pdf():
 
     # Output PDF safely
     pdf_output = BytesIO()
-    pdf.output(pdf_output)
+    pdf_output.write(pdf.output(dest='S').encode('latin1'))
     pdf_output.seek(0)
+
     return send_file(pdf_output, download_name=f"{session['username']}_health_report.pdf", as_attachment=True)
 
 # Render-ready app runner
