@@ -128,6 +128,8 @@ def download_pdf():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
+
+    # Fetch health entries
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("SELECT * FROM health_entries WHERE user_id=? ORDER BY created_at ASC", (user_id,))
@@ -148,16 +150,24 @@ def download_pdf():
     pdf.cell(50, 10, "Notes", 1, 0, "C")
     pdf.cell(50, 10, "Date", 1, 1, "C")
 
-    # Table rows
+    # Table rows safely
     pdf.set_font("Arial", "", 12)
-    for entry in entries:
-        pdf.cell(30, 10, str(entry[2]), 1, 0, "C")
-        pdf.cell(30, 10, entry[3] if entry[3] else "-", 1, 0, "C")
-        pdf.cell(30, 10, str(entry[4]) if entry[4] else "-", 1, 0, "C")
-        pdf.cell(50, 10, entry[5] if entry[5] else "-", 1, 0, "C")
-        pdf.cell(50, 10, str(entry[6]) if entry[6] else "-", 1, 1, "C")
+    if entries:
+        for entry in entries:
+            weight = str(entry[2]) if entry[2] is not None else "-"
+            bp = entry[3] if entry[3] else "-"
+            heart_rate = str(entry[4]) if entry[4] is not None else "-"
+            notes = entry[5] if entry[5] else "-"
+            created_at = entry[6] if entry[6] else "-"
+            pdf.cell(30, 10, weight, 1, 0, "C")
+            pdf.cell(30, 10, bp, 1, 0, "C")
+            pdf.cell(30, 10, heart_rate, 1, 0, "C")
+            pdf.cell(50, 10, notes, 1, 0, "C")
+            pdf.cell(50, 10, created_at, 1, 1, "C")
+    else:
+        pdf.cell(190, 10, "No health entries available.", 1, 1, "C")
 
-    # Weight Trend Graph
+    # Draw Weight Trend Graph if available
     weights = [entry[2] for entry in entries if entry[2] is not None]
     if weights:
         max_weight = max(weights) + 5
@@ -173,7 +183,7 @@ def download_pdf():
             pdf.rect(start_x + i*(bar_width+spacing), start_y + 50 - bar_height, bar_width, bar_height, 'F')
         pdf.ln(60)
 
-    # Heart Rate Trend Graph
+    # Draw Heart Rate Trend Graph if available
     heart_rates = [entry[4] for entry in entries if entry[4] is not None]
     if heart_rates:
         max_hr = max(heart_rates) + 10
@@ -188,6 +198,7 @@ def download_pdf():
             pdf.rect(start_x + i*(bar_width+spacing), start_y + 50 - bar_height, bar_width, bar_height, 'F')
         pdf.ln(60)
 
+    # Output PDF safely
     pdf_output = BytesIO()
     pdf.output(pdf_output)
     pdf_output.seek(0)
