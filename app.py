@@ -53,17 +53,9 @@ def get_user_by_credentials(username, password):
     conn.close()
     return user
 
-def get_user_by_id(user_id):
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("SELECT id, username FROM users WHERE id=?", (user_id,))
-    user = c.fetchone()
-    conn.close()
-    return user
-
 def analyze_health(entries):
     if not entries:
-        return "No data available to analyze.", [], (
+        return "No data to analyze.", [], (
             "General Diet Plan:\n"
             "- Breakfast: Oats/Idli with fruits\n"
             "- Lunch: Brown rice/Chapati + dal + vegetables\n"
@@ -76,19 +68,18 @@ def analyze_health(entries):
     bps = [e[3] for e in entries if e[3]]
     hrs = [e[4] for e in entries if e[4] is not None]
 
-    suggestions = []
-    risks = []
+    suggestions, risks = [], []
 
     if weights:
         avg_w = sum(weights) / len(weights)
         if avg_w < 50:
             risks.append("Underweight — possible nutrient deficiency.")
-            suggestions.append("Increase calorie intake, prioritize protein-rich foods.")
+            suggestions.append("Increase calories, add protein-rich foods.")
         elif avg_w > 80:
-            risks.append("Overweight — increased risk for metabolic disease.")
-            suggestions.append("Cut processed sugars, increase physical activity.")
+            risks.append("Overweight — possible metabolic issues.")
+            suggestions.append("Cut sugar, increase exercise.")
         else:
-            suggestions.append("Weight generally in healthy range — maintain routine.")
+            suggestions.append("Weight in healthy range.")
 
     if bps:
         systolics, diastolics = [], []
@@ -97,37 +88,37 @@ def analyze_health(entries):
                 s, d = bp.split("/")
                 systolics.append(int(s))
                 diastolics.append(int(d))
-            except Exception:
+            except:
                 continue
         if systolics and diastolics:
             avg_s = sum(systolics) / len(systolics)
             avg_d = sum(diastolics) / len(diastolics)
             if avg_s > 140 or avg_d > 90:
-                risks.append("High blood pressure (hypertension) — consult physician.")
-                suggestions.append("Reduce salt, avoid fried foods, increase cardio exercise.")
+                risks.append("High BP — hypertension risk.")
+                suggestions.append("Reduce salt, avoid fried foods, do cardio.")
             elif avg_s < 100 or avg_d < 60:
-                risks.append("Low blood pressure — risk of dizziness.")
-                suggestions.append("Ensure proper hydration and balanced meals.")
+                risks.append("Low BP — dizziness risk.")
+                suggestions.append("Stay hydrated, eat balanced meals.")
             else:
-                suggestions.append("Blood pressure in normal range.")
+                suggestions.append("Blood pressure normal.")
 
     if hrs:
         avg_hr = sum(hrs) / len(hrs)
         if avg_hr > 100:
-            risks.append("Elevated resting heart rate (tachycardia).")
-            suggestions.append("Reduce stimulants, manage stress, consult doctor if persists.")
+            risks.append("High heart rate — tachycardia.")
+            suggestions.append("Reduce caffeine, manage stress.")
         elif avg_hr < 60:
-            risks.append("Lower resting heart rate (bradycardia).")
-            suggestions.append("If symptomatic, seek medical advice; otherwise, may be fit.")
+            risks.append("Low heart rate — bradycardia.")
+            suggestions.append("If dizzy, seek doctor. Otherwise may be fit.")
         else:
-            suggestions.append("Resting heart rate in normal range.")
+            suggestions.append("Heart rate normal.")
 
     diet_plan = (
-        "🍏 Suggested Diet Plan:\n"
+        "🍏 Suggested Diet:\n"
         "- Breakfast: Oats/Idli + fruit\n"
-        "- Lunch: Brown rice/Chapati + dal + vegetables\n"
-        "- Snack: Nuts or Greek yogurt\n"
-        "- Dinner: Light veg soup or salad\n"
+        "- Lunch: Brown rice/Chapati + dal + veggies\n"
+        "- Snack: Nuts/Greek yogurt\n"
+        "- Dinner: Light veg soup/salad\n"
         "- Hydration: 2-3 L water daily\n"
     )
 
@@ -199,9 +190,8 @@ def health():
             heart_rate = request.form.get("heart_rate", "").strip()
             notes = request.form.get("notes", "").strip()
 
-            weight_val = float(weight) if weight != "" else None
-            heart_rate_val = int(heart_rate) if heart_rate != "" else None
-
+            weight_val = float(weight) if weight else None
+            heart_rate_val = int(heart_rate) if heart_rate else None
         except ValueError:
             return "Invalid numeric input."
 
@@ -209,7 +199,7 @@ def health():
         c = conn.cursor()
         c.execute(
             "INSERT INTO health_entries (user_id, weight, bp, heart_rate, notes) VALUES (?, ?, ?, ?, ?)",
-            (user_id, weight_val, bp if bp != "" else None, heart_rate_val, notes if notes != "" else None)
+            (user_id, weight_val, bp if bp else None, heart_rate_val, notes if notes else None)
         )
         conn.commit()
         conn.close()
@@ -235,63 +225,69 @@ def download_pdf():
     entries = c.fetchall()
     conn.close()
 
-    suggestions, risks, diet_plan = analyze_health(entries)
-
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", 'B', 16)
-    pdf.cell(0, 10, "Health Report", ln=True, align="C")
-
-    pdf.set_font("Arial", size=12)
-    pdf.ln(5)
-    pdf.cell(0, 10, f"Generated for: {session.get('username')}", ln=True)
-    pdf.cell(0, 10, f"Date: {datetime.now().strftime('%d %b %Y %H:%M')}", ln=True)
-
+    pdf.set_font("Arial", "B", 16)
+    pdf.cell(0, 10, f"{session['username']}'s Health Report", ln=True, align="C")
     pdf.ln(10)
-    pdf.set_font("Arial", 'B', 14)
-    pdf.cell(0, 10, "Your Health Entries:", ln=True)
 
-    pdf.set_font("Arial", size=11)
-    if not entries:
-        pdf.cell(0, 10, "No entries yet.", ln=True)
-    else:
+    # Table
+    pdf.set_font("Arial", "B", 12)
+    headers = ["Weight", "BP", "Heart Rate", "Notes", "Date"]
+    for h in headers:
+        pdf.cell(38, 10, h, 1, 0, "C")
+    pdf.ln(10)
+
+    pdf.set_font("Arial", "", 12)
+    if entries:
         for e in entries:
-            _, _, weight, bp, hr, notes, created_at = e
-            line = f"{created_at} | Wt: {weight}kg | BP: {bp} | HR: {hr} | Notes: {notes}"
-            pdf.multi_cell(0, 8, line)
+            weight = str(e[2]) if e[2] else "-"
+            bp = e[3] if e[3] else "-"
+            hr = str(e[4]) if e[4] else "-"
+            notes = e[5] if e[5] else "-"
+            date = e[6] if e[6] else "-"
+            pdf.cell(38, 10, weight, 1, 0, "C")
+            pdf.cell(38, 10, bp, 1, 0, "C")
+            pdf.cell(38, 10, hr, 1, 0, "C")
+            pdf.cell(38, 10, notes, 1, 0, "C")
+            pdf.cell(38, 10, date, 1, 1, "C")
+    else:
+        pdf.cell(190, 10, "No entries available.", 1, 1, "C")
 
+    # Analysis
+    suggestions, risks, diet_plan = analyze_health(entries)
     pdf.ln(10)
-    pdf.set_font("Arial", 'B', 14)
-    pdf.cell(0, 10, "Health Analysis & Suggestions:", ln=True)
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "Health Analysis", ln=True)
 
-    pdf.set_font("Arial", size=11)
-    pdf.multi_cell(0, 8, suggestions if suggestions else "No suggestions.")
+    pdf.set_font("Arial", "", 12)
+    pdf.multi_cell(0, 10, suggestions)
 
     if risks:
         pdf.ln(5)
-        pdf.set_font("Arial", 'B', 12)
-        pdf.cell(0, 10, "⚠️ Potential Risks:", ln=True)
-        pdf.set_font("Arial", size=11)
+        pdf.set_font("Arial", "B", 12)
+        pdf.cell(0, 10, "⚠️ Possible Risks:", ln=True)
+        pdf.set_font("Arial", "", 12)
         for r in risks:
-            pdf.multi_cell(0, 8, "- " + r)
+            pdf.multi_cell(0, 10, f"- {r}")
 
     pdf.ln(5)
-    pdf.set_font("Arial", 'B', 12)
+    pdf.set_font("Arial", "B", 12)
     pdf.cell(0, 10, "Diet Plan:", ln=True)
-    pdf.set_font("Arial", size=11)
-    pdf.multi_cell(0, 8, diet_plan)
+    pdf.set_font("Arial", "", 12)
+    pdf.multi_cell(0, 10, diet_plan)
 
+    # ✅ FIX for Render crash
     pdf_output = BytesIO()
-    pdf.output(pdf_output)
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    pdf_output.write(pdf_bytes)
     pdf_output.seek(0)
 
-    return send_file(
-        pdf_output,
-        as_attachment=True,
-        download_name="health_report.pdf",
-        mimetype="application/pdf"
-    )
+    return send_file(pdf_output,
+                     as_attachment=True,
+                     download_name=f"{session['username']}_health_report.pdf",
+                     mimetype="application/pdf")
 
 # ---------------- Run ----------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
